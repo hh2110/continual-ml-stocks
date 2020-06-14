@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Pycharm stuff
+.idea
+*.eggs
+*.egg-info
+*.slog
+*__pycache__*
+.cache/*
+
+# DS exclusive
+ds_checking.py
