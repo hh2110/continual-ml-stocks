@@ -141,3 +141,6 @@ ds_checking.py
 
 # notebooks
 *ipynb
+
+#config file
+code.conf
