@@ -138,3 +138,6 @@ dmypy.json
 
 # DS exclusive
 ds_checking.py
+
+# notebooks
+*ipynb
