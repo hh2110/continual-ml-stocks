@@ -144,3 +144,8 @@ ds_checking.py
 
 #config file
 code.conf
+
+*sqlite
+*csv
+*json
+*suo
