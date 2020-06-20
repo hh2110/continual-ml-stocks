@@ -5,6 +5,7 @@ import pandas as pd
 import GetOldTweets3 as got
 from datetime import datetime, timedelta, date
 import logging
+import time
 
 config = configparser.ConfigParser()
 config.read("code.conf")
@@ -139,6 +140,7 @@ def SaveLoadOfOldTweetsIntoCSV(username, fromDate, toDate, fileName):
                 numberOfTweets, fromDate, j
             )
         )
+        time.sleep(120)
 
     logging.info(
         "Completed the download of all {} tweets from {} into file: {} from {} till {}.".format(
