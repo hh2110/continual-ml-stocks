@@ -117,7 +117,8 @@ def CreateEmptyTweetDataframe(whichAPI):
 
 def SaveLoadOfOldTweetsIntoCSV(username, fromDate, toDate, fileName):
     """
-    Saves tweets to csv file on a weekly basis between two dates
+    Saves tweets to csv file on a N weekly basis between two dates with 2 min sleep in between
+    each saving action - to stop overloading the API
     """
 
     logging.info(
@@ -126,7 +127,7 @@ def SaveLoadOfOldTweetsIntoCSV(username, fromDate, toDate, fileName):
 
     tweetsDF = CreateEmptyTweetDataframe("got3")
     tweetsDF.to_csv(fileName)
-    datesList = CreateDatesList(fromDate, toDate)
+    datesList = CreateDatesList(fromDate, toDate, 4)
     fromDateList = datesList[0:-1]
     toDateList = datesList[1:]
 
@@ -151,15 +152,15 @@ def SaveLoadOfOldTweetsIntoCSV(username, fromDate, toDate, fileName):
     return None
 
 
-def CreateDatesList(fromDate, toDate):
+def CreateDatesList(fromDate, toDate, weeksNumber):
     """
-    Create a vector of dates spaced by a week between the two input dates
+    Create a vector of dates spaced by N weeks between the two input dates
     """
     currentDate = fromDate
     datesList = []
     while currentDate <= toDate:
         datesList.append(currentDate)
-        currentDate += timedelta(7)
+        currentDate += timedelta(7*weeksNumber)
 
     datesList.append(toDate)
 
