@@ -1,4 +1,3 @@
-import configparser
 import os
 import tweepy
 import pandas as pd
@@ -7,34 +6,12 @@ from datetime import datetime, timedelta, date
 import logging
 import time
 
-config = configparser.ConfigParser()
-config.read("code.conf")
-
 logging.basicConfig(
     filename="tweet-download.log",
     filemode="a",
     format="%(asctime)s - %(message)s",
     level=logging.INFO,
 )
-
-
-def SetUpEnvironmentVariables():
-    """
-    sets up environment with information regarding openblender - can also set up other
-    information to access data from other providers
-    return: none
-    """
-    parameterList = [
-        "OPEN_BLENDER_API_TOKEN",
-        "TWITTER_API_KEY",
-        "TWITTER_SECRET_KEY",
-        "TWITTER_ACCESS_TOKEN",
-        "TWITTER_ACCESS_TOKEN_SECRET",
-    ]
-
-    if os.environ["COMPUTERNAME"] == "UK-L-0318":
-        for parameter in parameterList:
-            os.environ[parameter] = config["DATA"][parameter]
 
 
 def CreateTweetDict(tweetInput, whichAPI):
