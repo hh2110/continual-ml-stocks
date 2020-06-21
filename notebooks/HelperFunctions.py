@@ -137,7 +137,7 @@ def CreateDatesList(fromDate, toDate, weeksNumber):
     datesList = []
     while currentDate <= toDate:
         datesList.append(currentDate)
-        currentDate += timedelta(7*weeksNumber)
+        currentDate += timedelta(7 * weeksNumber)
 
     datesList.append(toDate)
 
