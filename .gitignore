@@ -141,8 +141,8 @@ ds_checking.py
 
 *log
 *ipynb
-*csv
-*pkl
+#*csv
+#*pkl
 *sqlite
 *json
 *suo
