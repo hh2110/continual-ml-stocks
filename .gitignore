@@ -138,3 +138,12 @@ dmypy.json
 
 # DS exclusive
 ds_checking.py
+
+*log
+*ipynb
+*csv
+*pkl
+*sqlite
+*json
+*suo
+*txt
