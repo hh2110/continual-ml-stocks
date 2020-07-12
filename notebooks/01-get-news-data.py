@@ -13,18 +13,19 @@
 #     name: python3
 # ---
 
-from HelperFunctions import (
+from HelperFunctions.GetNewsData import (
     SaveLoadOfOldTweetsIntoCSV
 )
 from datetime import date
 
-fromDate = date(2019,11,1)
-toDate = date(2020,1,1)
+fromDate = date(2016,4,16)
+toDate = date(2020,7,1)
+username = 'WSJ'
 SaveLoadOfOldTweetsIntoCSV(
-    'USATODAY', 
+    username, 
     fromDate, 
     toDate,
-    'usatoday_{}_till_{}.csv'.format(fromDate, toDate)
+    '{}_{}_till_{}.csv'.format(username, fromDate, toDate)
 )
 
 

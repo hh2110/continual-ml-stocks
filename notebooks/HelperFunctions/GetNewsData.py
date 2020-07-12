@@ -104,7 +104,7 @@ def SaveLoadOfOldTweetsIntoCSV(username, fromDate, toDate, fileName):
 
     tweetsDF = CreateEmptyTweetDataframe("got3")
     tweetsDF.to_csv(fileName)
-    datesList = CreateDatesList(fromDate, toDate, 4)
+    datesList = CreateDatesList(fromDate, toDate, 3)
     fromDateList = datesList[0:-1]
     toDateList = datesList[1:]
 
