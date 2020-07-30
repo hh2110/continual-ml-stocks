@@ -23,19 +23,24 @@ from HelperFunctions.VectorizeTweetData import (
 )
 
 # +
-# fileName = "usatoday_2016-01-01_till_2020-01-01.csv"
-# fileName = "../data/WSJmarkets_2016-01-01_till_2020-01-01.csv"
-fileName = "../data/FT_2016-01-01_till_2020-01-01.csv"
-tweetsDF = pd.read_csv(fileName, index_col=0)
+fileNameUsa = "../data/raw-tweets/usatoday_2016-01-01_till_2020-01-01.csv"
+fileNameWsj = "../data/raw-tweets/WSJmarkets_2016-01-01_till_2020-01-01.csv"
+tweetsDF = pd.concat([
+    pd.read_csv(fileNameUsa, index_col=0), 
+    pd.read_csv(fileNameWsj, index_col=0)
+])
+
+# inlcude extra stop words:
+stopdf = pd.read_csv('../data/stop-word-list.txt')['0o'].tolist()
 
 processedDF = ProcessTweetDataFrame(tweetsDF, '{}.pkl'.format(fileName.split('.')[0]))
-vectorizedDF = VectorizeDataFrame(processedDF, 37)
-dfList = GroupByParallelProcess(vectorizedDF, 8)
+vectorizedDF = VectorizeDataFrame(processedDF, 1997, 'bow', stopdf)
+dfList = GroupByParallelProcess(vectorizedDF, 8, 'sum')
 finalDF = pd.concat(dfList, axis=1)
 finalDF = finalDF.loc[:,~finalDF.columns.duplicated()]
-finalDF.to_pickle(fileName + 'test_weighted_avg.pkl')
-# -
 
+# -
+finalDF.to_pickle('all_tweets_group_sum.pkl')
 
 
 

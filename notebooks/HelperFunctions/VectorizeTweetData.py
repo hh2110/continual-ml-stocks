@@ -20,38 +20,46 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-# split dataframe into splitNumber parts: 
+# split dataframe into splitNumber parts:
 def GetListOfSplitDFs(df, splitNumber):
     """
     splits df into list of splitNumber df's - make sure len(df)%splitNumber=0 
     """
     columnList = df.columns.tolist()
     totalColumnNumber = len(columnList)
-    columnsPerDF = totalColumnNumber/splitNumber
+    columnsPerDF = totalColumnNumber / splitNumber
 
     dfList = []
     if totalColumnNumber % splitNumber == 0:
-        for i in range(0,splitNumber):
-            startColumnIndex = int(i*columnsPerDF)
-            endColumnIndex = int(startColumnIndex+columnsPerDF)
+        for i in range(0, splitNumber):
+            startColumnIndex = int(i * columnsPerDF)
+            endColumnIndex = int(startColumnIndex + columnsPerDF)
             splitDF = df[columnList[startColumnIndex:endColumnIndex]]
             if splitDF.shape[1] == columnsPerDF:
                 # add in label_retweets and label_favourites columns
-                splitDF['label_retweets'] = df.copy().label_retweets
-                splitDF['label_favorites'] = df.copy().label_favorites
+                splitDF["label_retweets"] = df.copy().label_retweets
+                splitDF["label_favorites"] = df.copy().label_favorites
                 dfList.append(splitDF)
             else:
-                logging.error('probably duplicate column names')
+                logging.error("probably duplicate column names")
                 return None
         return dfList
     else:
-        logging.error('make sure len(columns) is divisible by splitNumber')
+        logging.error("make sure len(columns) is divisible by splitNumber")
         return None
 
-    
+
 # apply groupby and then average over result and return averaged df
 def PerformGroupbyAndAggregate(inputDF):
-    return inputDF.groupby('label_date').apply(ApplyWAtoDF)
+    return inputDF.groupby("label_date").apply(ApplyWAtoDF)
+
+
+def PerformSum(inputDF):
+    return inputDF.groupby("label_date").sum()
+
+
+def PerformMean(inputDF):
+    return inputDF.groupby("label_date").mean()
 
 
 def ApplyWAtoDF(i_df):
@@ -59,32 +67,46 @@ def ApplyWAtoDF(i_df):
     Average the ngram values weighted by number of retweets
     Will return NaN if there are no retweets on a specific day - that is fine
     """
-    weightedAverageDF = i_df.drop(columns=["label_retweets", "label_favorites"]).mul(
-        i_df["label_retweets"], axis=0
-    ).sum(axis=0) / i_df.sum(axis=0).label_retweets
+    weightedAverageDF = (
+        i_df.drop(columns=["label_retweets", "label_favorites"])
+        .mul(i_df["label_retweets"], axis=0)
+        .sum(axis=0)
+        / i_df.sum(axis=0).label_retweets
+    )
     weightedAverageDF["label_retweets"] = np.mean(i_df["label_retweets"])
     weightedAverageDF["label_favorites"] = np.mean(i_df["label_favorites"])
     return weightedAverageDF
 
 
-def GroupByParallelProcess(tweetsDF, cores):
+def GroupByParallelProcess(tweetsDF, cores, groupMethod):
     """
     Group by and aggregate on time via a parallel process
     """
 
     tweetsDF.label_date = tweetsDF.label_date.astype(int)
-    tweetsDF = tweetsDF.set_index('label_date')
+    tweetsDF = tweetsDF.set_index("label_date")
     # Parallelizing using Pool.apply()
     df_split = GetListOfSplitDFs(tweetsDF, cores)
     # create the multiprocessing pool
     pool = Pool(cores)
     # process the DataFrame by mapping function to each df across the pool
-    df_out = pool.map(PerformGroupbyAndAggregate, df_split)
+    logging.info('Starting the grouping and aggregating process.')
+    if groupMethod == "weighted-average":
+        df_out = pool.map(PerformGroupbyAndAggregate, df_split)
+    elif groupMethod == "sum":
+        df_out = pool.map(PerformSum, df_split)
+    elif groupMethod == "mean":
+        df_out = pool.map(PerformMean, df_split)
+    else:
+        logging.error("Choose correct group by method.")
+        return None
 
     # close down the pool and join
     pool.close()
     pool.join()
     pool.clear()
+
+    logging.info('Ended the grouping and aggregating process.')
 
     return df_out
 
@@ -146,34 +168,8 @@ def VectorizeDataFrame(
 def ProcessTweetDataFrame(tweetsDF, pklFileName):
     """
     Set of processing steps for tweets DF
-    Expects dataframe to contain the following columns
-    [
-        'permalink','username','to','mentions','hashtags','geo',
-        'id','favorites','retweets','date','text'
-    ] all as strings (created via a csv file)
     Returns a cleaned dataframe of tweet data and saves a pkl file of clean data
     """
-
-    # check that dataframe contains all columns
-    requiredList = [
-        "permalink",
-        "username",
-        "to",
-        "mentions",
-        "hashtags",
-        "geo",
-        "id",
-        "favorites",
-        "retweets",
-        "date",
-        "text",
-    ]
-    if set(tweetsDF.columns.tolist()) != set(requiredList):
-        logging.error(
-            "The columns in the tweets dataFrame do not match that of the required list."
-        )
-        return None
-
     # clean the dataframe and make it ready for text processing
     tweetsDF = CleanTweetsDataFrame(tweetsDF)
 
@@ -200,10 +196,13 @@ def ProcessText(text):
     if isinstance((text), (str)):
         # remove non-word characters and lower the letters
         text = re.sub(r"<[^>]*>", r"", text)
+        text = re.sub(r"#(\w+)", "", text)
+        text = re.sub(r"@", "", text)
         text = re.sub(r"[^a-zA-Z0-9\s]+", r"", text.lower())
         # remove url strings from text
         text = RemoveUrl(text)
         # remove extra spaces
+        text = re.sub(r"^ +", r"", text)
         text = re.sub(r" +", r" ", text)
         return text
     if isinstance((text), (list)):
@@ -211,10 +210,13 @@ def ProcessText(text):
         for i in range(len(text)):
             # remove non-word characters and lower the letters
             temp_text = re.sub(r"<[^>]*>", r"", text[i])
+            temp_text = re.sub(r"#(\w+)", "", temp_text)
+            temp_text = re.sub(r"@", "", temp_text)
             temp_text = re.sub(r"[^a-zA-Z0-9\s]+", r"", temp_text.lower())
             # remove url strings from text
             temp_text = RemoveUrl(temp_text)
             # remove extra spaces
+            temp_text = re.sub(r"^ +", r"", temp_text)
             temp_text = re.sub(r" +", r" ", temp_text)
             return_list.append(temp_text)
         return return_list
@@ -235,7 +237,8 @@ def CleanTweetsDataFrame(tweetsDF):
     """
     # remove unwanted columns
     tweetsDF = tweetsDF.drop(
-        columns=["permalink", "username", "to", "mentions", "hashtags", "geo"]
+        columns=["permalink", "username", "to", "mentions", "hashtags", "geo"],
+        errors="ignore",
     )
     logging.info("Unwanted columns dropped.")
 
@@ -245,6 +248,15 @@ def CleanTweetsDataFrame(tweetsDF):
     tweetsDF.retweets = tweetsDF.retweets.apply(pd.to_numeric)
     tweetsDF.date = tweetsDF.date.apply(getDateFromDatetime)
     logging.info("Columns converted to corresponding types.")
+
+    # drop duplicates, but sort by date first and keep the earliest date duplicate tweet
+    logging.info(
+        "Dropping {} duplicate tweets and keeping the earliest duplicate tweets.".format(
+            len(tweetsDF[tweetsDF.duplicated(["text"])])
+        )
+    )
+    tweetsDF = tweetsDF.sort_values("date", ascending=False)
+    tweetsDF = tweetsDF.drop_duplicates(subset="text", keep="last")
 
     # drop nan text, date or id
     for columnName in ["id", "date", "text"]:
@@ -273,8 +285,11 @@ def CleanTweetsDataFrame(tweetsDF):
 
 def getDateFromDatetime(inputDateString):
     """
-    Given a datetime string - return a date object.
+    Given a datetime string - return a date object + 1 day ahead since
+    tweets from day X are registered to midnight at day X+1
     """
     dateOnly = inputDateString.split(" ")[0]
     dateOnlyList = [int(x) for x in dateOnly.split("-")]
-    return datetime(dateOnlyList[0], dateOnlyList[1], dateOnlyList[2], 0, 0, 0)
+    returnDate = datetime(dateOnlyList[0], dateOnlyList[1], dateOnlyList[2], 0, 0, 0)
+    
+    return returnDate

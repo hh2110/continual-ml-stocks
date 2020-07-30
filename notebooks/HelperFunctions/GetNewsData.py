@@ -1,5 +1,4 @@
 import os
-import tweepy
 import pandas as pd
 import GetOldTweets3 as got
 from datetime import datetime, timedelta, date
