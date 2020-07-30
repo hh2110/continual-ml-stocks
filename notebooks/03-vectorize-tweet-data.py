@@ -19,7 +19,8 @@ import pandas as pd
 from HelperFunctions.VectorizeTweetData import (
     ProcessTweetDataFrame,
     VectorizeDataFrame,
-    GroupByParallelProcess
+    GroupByParallelProcess,
+    GetQuickGroupedVectorizedDataByJoiningTweets
 )
 
 # +
@@ -30,17 +31,16 @@ tweetsDF = pd.concat([
     pd.read_csv(fileNameWsj, index_col=0)
 ])
 
-# inlcude extra stop words:
-stopdf = pd.read_csv('../data/stop-word-list.txt')['0o'].tolist()
-
-processedDF = ProcessTweetDataFrame(tweetsDF, '{}.pkl'.format(fileName.split('.')[0]))
+processedDF = ProcessTweetDataFrame(tweetsDF, '{}.pkl'.format('all-tweets-processed.pkl'))
 vectorizedDF = VectorizeDataFrame(processedDF, 1997, 'bow', stopdf)
 dfList = GroupByParallelProcess(vectorizedDF, 8, 'sum')
 finalDF = pd.concat(dfList, axis=1)
 finalDF = finalDF.loc[:,~finalDF.columns.duplicated()]
-
-# -
 finalDF.to_pickle('all_tweets_group_sum.pkl')
+
+# other quicker method if just summing vectors (takes ~40s)
+# finalDF = GetQuickGroupedVectorizedDataByJoiningTweets(tweetsDF, 'bow', 5000)
+# finalDF.to_pickle('david-example.pkl')
 
 
 

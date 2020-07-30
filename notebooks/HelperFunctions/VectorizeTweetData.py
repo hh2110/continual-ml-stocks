@@ -90,7 +90,7 @@ def GroupByParallelProcess(tweetsDF, cores, groupMethod):
     # create the multiprocessing pool
     pool = Pool(cores)
     # process the DataFrame by mapping function to each df across the pool
-    logging.info('Starting the grouping and aggregating process.')
+    logging.info("Starting the grouping and aggregating process.")
     if groupMethod == "weighted-average":
         df_out = pool.map(PerformGroupbyAndAggregate, df_split)
     elif groupMethod == "sum":
@@ -106,7 +106,7 @@ def GroupByParallelProcess(tweetsDF, cores, groupMethod):
     pool.join()
     pool.clear()
 
-    logging.info('Ended the grouping and aggregating process.')
+    logging.info("Ended the grouping and aggregating process.")
 
     return df_out
 
@@ -291,5 +291,26 @@ def getDateFromDatetime(inputDateString):
     dateOnly = inputDateString.split(" ")[0]
     dateOnlyList = [int(x) for x in dateOnly.split("-")]
     returnDate = datetime(dateOnlyList[0], dateOnlyList[1], dateOnlyList[2], 0, 0, 0)
-    
+
     return returnDate
+
+
+def GetQuickGroupedVectorizedDataByJoiningTweets(
+    tweetsDF, vectorizeMethod, maxFeatures
+):
+    """
+    Quick method to return vectorized matrix of tweets by
+    grouping the text of tweets first and then vectorising - note that
+    this will ignore the other features: favorites number and retweets number
+    so one cannot do weighted averages or normal averages (only sums)
+    """
+    processedDF = ProcessTweetDataFrame(tweetsDF, "{}.pkl".format("test"))
+    processedDF["date"] = processedDF.date.astype(int)
+    processedDF = processedDF.set_index("date")
+    groupedDF = processedDF.groupby("date").agg(
+        {"text": "   ".join, "retweets": sum, "favorites": sum, "id": sum}
+    )
+    groupedDF = groupedDF.reset_index()
+    vectorizedDF = VectorizeDataFrame(groupedDF, maxFeatures, vectorizeMethod)
+
+    return vectorizedDF

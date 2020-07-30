@@ -16,7 +16,7 @@
 from HelperFunctions.GetNewsData import SaveLoadOfOldTweetsIntoCSV
 from datetime import date
 
-fromDate = date(2019, 12, 1)
+fromDate = date(2015, 1, 1)
 toDate = date(2020, 1, 1)
 # investopedia recommended handles
 usernameList = [
@@ -26,17 +26,16 @@ usernameList = [
     "BreakoutStocks",
     "bespokeinvest",
     "WSJmarkets",
-    "Stephanie_Link",
     "nytimesbusiness",
     "IBDinvestors",
-    "WSJDealJournal",
+    "WSJdeals",
 ]
 for username in usernameList:
     SaveLoadOfOldTweetsIntoCSV(
         username,
         fromDate,
         toDate,
-        "../data/raw-tweets/investopedia-handles/{}_{}_till_{}.csv".format(
+        "../data/raw-tweets/investopedia-handles/jan-15-till-jan-20/{}_{}_till_{}.csv".format(
             username, fromDate, toDate
         ),
     )
