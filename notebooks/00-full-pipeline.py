@@ -55,7 +55,7 @@ print("create raw tweets df \t", TimeTaken(t0_create_raw_tweets_df))
 t0_vectorize_tweets = time.time()
 vectorizeMethod = 'tfidf'
 vectorizedTweets = GetQuickGroupedVectorizedDataByJoiningTweets(
-    tweetsDF, vectorizeMethod, 500
+    tweetsDF, vectorizeMethod, 5000
 )
 print("vectorize tweets df \t", TimeTaken(t0_vectorize_tweets))
 
@@ -79,6 +79,7 @@ mergedDF = merge_news_price_df(newsDF, priceDF)
 if vectorizeMethod == 'bow':
     weekendTreatedMergedDF = TreatWeekendTweets(mergedDF, newsColumns)
 elif vectorizeMethod == 'tfidf':
+    # no weekend treatment for tfidf method!
     weekendTreatedMergedDF = mergedDF.copy().dropna()
 modelReadyDF = IntroduceLaggedPOC(weekendTreatedMergedDF, 1)
 print("fix tweets weekends \t", TimeTaken(t0_treat_weekends))

@@ -52,8 +52,8 @@ def plot_feature_importance(model, train_data):
     fiDF = fiDF.sort_values("fi", ascending=False)
     fiDF.head()
     nf = 50
-    plt.rcParams.update({"font.size": 8})
-    plt.figure(figsize=(8, 4))
+    plt.rcParams.update({"font.size": 7})
+    plt.figure(figsize=(6, 4))
     plt.plot(fiDF.f.iloc[0:nf], fiDF.fi.iloc[0:nf])
     plt.xticks(rotation=90)
     plt.show()
