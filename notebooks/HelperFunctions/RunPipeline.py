@@ -2,20 +2,20 @@ import pandas as pd
 import time
 import os
 from sklearn.ensemble import RandomForestClassifier
-from HelperFunctions.GetNewsData import (
+from GetNewsData import (
     CreateEmptyTweetDataframe
 )
-from HelperFunctions.VectorizeTweetData import (
+from VectorizeTweetData import (
     GetQuickGroupedVectorizedDataByJoiningTweets
 )
-from HelperFunctions.MergePriceData import (
+from MergePriceData import (
     get_price_df,
     get_news_df_and_columns,
     merge_news_price_df,
     TreatWeekendTweets,
     IntroduceLaggedPOC
 )
-from HelperFunctions.RunModel import (
+from RunModel import (
     do_ml
 )
 
